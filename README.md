@@ -1,36 +1,151 @@
 # FILM!
 
+Онлайн-сервис бронирования билетов в кинотеатр.
+
+Проект состоит из:
+
+- frontend на React и Vite;
+- backend на NestJS;
+- базы данных MongoDB.
+
 ## Установка
 
 ### MongoDB
 
-Установите MongoDB скачав дистрибутив с официального сайта или с помощью пакетного менеджера вашей ОС. Также можно воспользоваться Docker (см. ветку `feat/docker`.
+MongoDB можно установить локально или запустить через Docker.
 
-Выполните скрипт `test/mongodb_initial_stub.js` в консоли `mongo`.
+Пример запуска через Docker:
 
-### Бэкенд
+```bash
+docker run -d \
+  --name film-mongo \
+  -p 27017:27017 \
+  -v film-mongo-data:/data/db \
+  mongo:7
+```
 
-Перейдите в папку с исходным кодом бэкенда
+Для подключения через MongoDB Compass используйте адрес:
 
-`cd backend`
+```text
+mongodb://localhost:27017
+```
 
-Установите зависимости (точно такие же, как в package-lock.json) помощью команд
+Создайте базу данных и коллекцию:
 
-`npm ci` или `yarn install --frozen-lockfile`
+```text
+Database: afisha
+Collection: films
+```
 
-Создайте `.env` файл из примера `.env.example`, в нём укажите:
+Импортируйте данные из файла:
 
-* `DATABASE_DRIVER` - тип драйвера СУБД - в нашем случае это `mongodb` 
-* `DATABASE_URL` - адрес СУБД MongoDB, например `mongodb://127.0.0.1:27017/practicum`.  
+```text
+backend/test/mongodb_initial_stub.json
+```
 
-MongoDB должна быть установлена и запущена.
+В MongoDB Compass выберите:
 
-Запустите бэкенд:
+```text
+Add Data → Import JSON or CSV file
+```
 
-`npm start:debug`
+## Бэкенд
 
-Для проверки отправьте тестовый запрос с помощью Postman или `curl`.
+Перейдите в папку backend:
 
+```bash
+cd backend
+```
 
+Установите зависимости:
 
+```bash
+npm ci
+```
 
+Создайте файл `.env` на основе примера:
+
+```bash
+cp .env.example .env
+```
+
+Пример содержимого:
+
+```env
+DATABASE_DRIVER="mongodb"
+DATABASE_URL="mongodb://localhost:27017/afisha"
+PORT=3000
+CORS_ORIGIN="http://localhost:5173"
+DEBUG=*
+```
+
+Переменные окружения:
+
+- `DATABASE_DRIVER` — используемый драйвер базы данных;
+- `DATABASE_URL` — адрес подключения к MongoDB;
+- `PORT` — порт backend-приложения;
+- `CORS_ORIGIN` — адрес frontend-приложения, которому разрешены запросы к API;
+- `DEBUG` — настройка отладочных сообщений.
+
+Запустите backend в режиме разработки:
+
+```bash
+npm run start:dev
+```
+
+Основные эндпоинты:
+
+```text
+GET  /api/afisha/films
+GET  /api/afisha/films/:id/schedule
+POST /api/afisha/order
+GET  /content/afisha/*
+```
+
+Проверка линтинга и сборки:
+
+```bash
+npm run lint
+npm run build
+```
+
+## Фронтенд
+
+В отдельном терминале перейдите в папку frontend:
+
+```bash
+cd frontend
+```
+
+Установите зависимости:
+
+```bash
+npm ci
+```
+
+Создайте файл `.env` на основе примера:
+
+```bash
+cp .env.example .env
+```
+
+Пример содержимого:
+
+```env
+VITE_API_URL=http://localhost:3000/api/afisha
+VITE_CDN_URL=http://localhost:3000/content/afisha
+```
+
+Запустите frontend:
+
+```bash
+npm run dev
+```
+
+По умолчанию приложение будет доступно по адресу:
+
+```text
+http://localhost:5173
+```
+
+Для корректной работы frontend должны быть одновременно запущены MongoDB и backend.
