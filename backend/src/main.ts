@@ -1,11 +1,28 @@
 import { NestFactory } from '@nestjs/core';
 import { AppModule } from './app.module';
-import 'dotenv/config'
+import { ConfigService } from '@nestjs/config';
+import { ValidationPipe } from '@nestjs/common';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
-  app.setGlobalPrefix("api/afisha");
-  app.enableCors();
-  await app.listen(3000);
+  const configService = app.get(ConfigService);
+  const port = configService.get<number>('PORT', 3000);
+  const corsOrigin = configService.get<string>(
+    'CORS_ORIGIN',
+    'http://localhost:5173',
+  );
+
+  app.setGlobalPrefix('api/afisha');
+  app.useGlobalPipes(
+    new ValidationPipe({
+      whitelist: true,
+      transform: true,
+    }),
+  );
+  app.enableCors({
+    origin: corsOrigin,
+  });
+
+  await app.listen(port);
 }
 bootstrap();
