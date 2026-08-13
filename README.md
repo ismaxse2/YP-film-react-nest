@@ -6,47 +6,34 @@
 
 - frontend на React и Vite;
 - backend на NestJS;
-- базы данных MongoDB.
+- базы данных PostgreSQL.
 
 ## Установка
 
-### MongoDB
+### PostgreSQL
 
-MongoDB можно установить локально или запустить через Docker.
+PostgreSQL можно установить локально или запустить через Docker.
 
 Пример запуска через Docker:
 
 ```bash
-docker run -d \
-  --name film-mongo \
-  -p 27017:27017 \
-  -v film-mongo-data:/data/db \
-  mongo:7
-```
-
-Для подключения через MongoDB Compass используйте адрес:
-
-```text
-mongodb://localhost:27017
+docker compose up -d
 ```
 
 Создайте базу данных и коллекцию:
 
-```text
-Database: afisha
-Collection: films
-```
+```bash
+docker exec -i postgres_container \
+  psql -U prac -d prac \
+  < backend/test/prac.init.sql
 
-Импортируйте данные из файла:
+docker exec -i postgres_container \
+  psql -U prac -d prac \
+  < backend/test/prac.films.sql
 
-```text
-backend/test/mongodb_initial_stub.json
-```
-
-В MongoDB Compass выберите:
-
-```text
-Add Data → Import JSON or CSV file
+docker exec -i postgres_container \
+  psql -U prac -d prac \
+  < backend/test/prac.shedules.sql
 ```
 
 ## Бэкенд
@@ -72,8 +59,10 @@ cp .env.example .env
 Пример содержимого:
 
 ```env
-DATABASE_DRIVER="mongodb"
-DATABASE_URL="mongodb://localhost:27017/afisha"
+DATABASE_DRIVER="postgres"
+DATABASE_URL="postgres://localhost:5432/prac"
+DATABASE_USERNAME=prac
+DATABASE_PASSWORD=prac
 PORT=3000
 CORS_ORIGIN="http://localhost:5173"
 DEBUG=*
@@ -82,7 +71,9 @@ DEBUG=*
 Переменные окружения:
 
 - `DATABASE_DRIVER` — используемый драйвер базы данных;
-- `DATABASE_URL` — адрес подключения к MongoDB;
+- `DATABASE_URL` — адрес подключения к PostgreSQL;
+- `DATABASE_USERNAME` — имя пользователя PostgreSQL;
+- `DATABASE_PASSWORD` — пароль пользователя PostgreSQL;
 - `PORT` — порт backend-приложения;
 - `CORS_ORIGIN` — адрес frontend-приложения, которому разрешены запросы к API;
 - `DEBUG` — настройка отладочных сообщений.
@@ -107,6 +98,12 @@ GET  /content/afisha/*
 ```bash
 npm run lint
 npm run build
+```
+
+Запуск e2e-тестов:
+
+```bash
+npm run test:e2e
 ```
 
 ## Фронтенд
@@ -148,4 +145,4 @@ npm run dev
 http://localhost:5173
 ```
 
-Для корректной работы frontend должны быть одновременно запущены MongoDB и backend.
+Для корректной работы frontend должны быть одновременно запущены PostgreSQL и backend.
