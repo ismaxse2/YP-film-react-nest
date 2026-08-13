@@ -27,7 +27,11 @@ export class FilmsTypeOrmRepository implements FilmsRepository {
   ) {}
 
   async findAll(): Promise<FilmsResponseDto> {
-    const films = await this.filmRepository.find();
+    const films = await this.filmRepository.find({
+      relations: {
+        schedule: true,
+      },
+    });
 
     return {
       total: films.length,
@@ -116,6 +120,9 @@ export class FilmsTypeOrmRepository implements FilmsRepository {
       title: film.title,
       about: film.about,
       description: film.description,
+      schedule: (film.schedule ?? []).map((schedule) =>
+        this.mapScheduleToDto(schedule),
+      ),
     };
   }
 
