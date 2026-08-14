@@ -1,4 +1,4 @@
-import { BadRequestException, Injectable } from '@nestjs/common';
+import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { randomUUID } from 'node:crypto';
 import { Repository } from 'typeorm';
@@ -14,7 +14,7 @@ import { CreatedTicketDto, TicketDto } from '../order/dto/order.dto';
 
 import { FilmEntity } from './entities/film.entity';
 import { ScheduleEntity } from './entities/schedule.entity';
-import { FilmsRepository } from './films.repository';
+import { CreateOrderResult, FilmsRepository } from './films.repository';
 
 @Injectable()
 export class FilmsTypeOrmRepository implements FilmsRepository {
@@ -52,7 +52,7 @@ export class FilmsTypeOrmRepository implements FilmsRepository {
     };
   }
 
-  async createOrder(tickets: TicketDto[]): Promise<CreatedTicketDto[]> {
+  async createOrder(tickets: TicketDto[]): Promise<CreateOrderResult> {
     const requestedSeats = new Set<string>();
     const createdTickets: CreatedTicketDto[] = [];
 
@@ -60,9 +60,11 @@ export class FilmsTypeOrmRepository implements FilmsRepository {
       const key = `${ticket.film}:${ticket.session}:${ticket.row}:${ticket.seat}`;
 
       if (requestedSeats.has(key)) {
-        throw new BadRequestException(
-          `Место ${ticket.row}:${ticket.seat} указано дважды`,
-        );
+        return {
+          success: false,
+          code: 'DUPLICATE_SEAT',
+          place: `${ticket.row}:${ticket.seat}`,
+        };
       }
 
       requestedSeats.add(key);
@@ -79,24 +81,26 @@ export class FilmsTypeOrmRepository implements FilmsRepository {
       const place = `${ticket.row}:${ticket.seat}`;
 
       if (!schedule) {
-        throw new BadRequestException(
-          `Место ${place} уже занято или сеанс не найден`,
-        );
+        return {
+          success: false,
+          code: 'SEAT_TAKEN_OR_SESSION_NOT_FOUND',
+          place,
+        };
       }
 
-      const taken = schedule.taken
-        ? schedule.taken.split(',').filter(Boolean)
-        : [];
+      const taken = [...schedule.taken];
 
       if (taken.includes(place)) {
-        throw new BadRequestException(
-          `Место ${place} уже занято или сеанс не найден`,
-        );
+        return {
+          success: false,
+          code: 'SEAT_TAKEN_OR_SESSION_NOT_FOUND',
+          place,
+        };
       }
 
       taken.push(place);
 
-      schedule.taken = taken.join(',');
+      schedule.taken = taken;
 
       await this.scheduleRepository.save(schedule);
 
@@ -106,7 +110,10 @@ export class FilmsTypeOrmRepository implements FilmsRepository {
       });
     }
 
-    return createdTickets;
+    return {
+      success: true,
+      tickets: createdTickets,
+    };
   }
 
   private mapFilmToDto(film: FilmEntity): FilmDto {
@@ -114,7 +121,7 @@ export class FilmsTypeOrmRepository implements FilmsRepository {
       id: film.id,
       rating: film.rating,
       director: film.director,
-      tags: film.tags ? film.tags.split(',') : [],
+      tags: film.tags,
       image: film.image,
       cover: film.cover,
       title: film.title,
@@ -134,7 +141,7 @@ export class FilmsTypeOrmRepository implements FilmsRepository {
       rows: schedule.rows,
       seats: schedule.seats,
       price: schedule.price,
-      taken: schedule.taken ? schedule.taken.split(',').filter(Boolean) : [],
+      taken: schedule.taken,
     };
   }
 }

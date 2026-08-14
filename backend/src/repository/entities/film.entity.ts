@@ -13,8 +13,8 @@ export class FilmEntity {
   @Column()
   director!: string;
 
-  @Column('text')
-  tags!: string;
+  @Column('simple-array')
+  tags!: string[];
 
   @Column()
   image!: string;

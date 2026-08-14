@@ -13,27 +13,23 @@ import { FILMS_REPOSITORY } from './films.repository';
       imports: [ConfigModule],
       inject: [ConfigService],
 
-      useFactory: (configService: ConfigService) => {
-        const databaseUrl = new URL(
-          configService.getOrThrow<string>('DATABASE_URL'),
-        );
+      useFactory: (configService: ConfigService) => ({
+        type: 'postgres' as const,
 
-        return {
-          type: 'postgres' as const,
+        host: configService.getOrThrow<string>('DATABASE_HOST'),
 
-          host: databaseUrl.hostname,
-          port: Number(databaseUrl.port) || 5432,
-          database: databaseUrl.pathname.slice(1),
+        port: Number(configService.getOrThrow<string>('DATABASE_PORT')),
 
-          username: configService.getOrThrow<string>('DATABASE_USERNAME'),
+        database: configService.getOrThrow<string>('DATABASE_NAME'),
 
-          password: configService.getOrThrow<string>('DATABASE_PASSWORD'),
+        username: configService.getOrThrow<string>('DATABASE_USERNAME'),
 
-          entities: [FilmEntity, ScheduleEntity],
+        password: configService.getOrThrow<string>('DATABASE_PASSWORD'),
 
-          synchronize: false,
-        };
-      },
+        entities: [FilmEntity, ScheduleEntity],
+
+        synchronize: false,
+      }),
     }),
 
     TypeOrmModule.forFeature([FilmEntity, ScheduleEntity]),

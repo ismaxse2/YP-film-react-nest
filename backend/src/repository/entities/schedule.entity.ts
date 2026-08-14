@@ -28,8 +28,8 @@ export class ScheduleEntity {
   @Column('double precision')
   price!: number;
 
-  @Column('text')
-  taken!: string;
+  @Column('simple-array')
+  taken!: string[];
 
   @Column('uuid', { nullable: true })
   filmId!: string | null;

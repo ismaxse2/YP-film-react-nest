@@ -60,7 +60,9 @@ cp .env.example .env
 
 ```env
 DATABASE_DRIVER="postgres"
-DATABASE_URL="postgres://localhost:5432/prac"
+DATABASE_HOST=localhost
+DATABASE_PORT=5432
+DATABASE_NAME=prac
 DATABASE_USERNAME=prac
 DATABASE_PASSWORD=prac
 PORT=3000
@@ -71,7 +73,9 @@ DEBUG=*
 Переменные окружения:
 
 - `DATABASE_DRIVER` — используемый драйвер базы данных;
-- `DATABASE_URL` — адрес подключения к PostgreSQL;
+- `DATABASE_HOST` — адрес сервера PostgreSQL;
+- `DATABASE_PORT` — порт PostgreSQL;
+- `DATABASE_NAME` — имя базы данных;
 - `DATABASE_USERNAME` — имя пользователя PostgreSQL;
 - `DATABASE_PASSWORD` — пароль пользователя PostgreSQL;
 - `PORT` — порт backend-приложения;
