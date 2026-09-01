@@ -1,19 +1,94 @@
 services:
+  frontend:
+    build:
+      context: ./frontend
+    image: ghcr.io/ismaxse2/film-frontend:latest
+    container_name: film_frontend
+    volumes:
+      - frontend_dist:/app/dist
+    networks:
+      - film_network
+
+  backend:
+    build:
+      context: ./backend
+    image: ghcr.io/ismaxse2/film-backend:latest
+    container_name: film_backend
+    restart: unless-stopped
+    environment:
+      DATABASE_DRIVER: postgres
+      DATABASE_HOST: postgres
+      DATABASE_PORT: 5432
+      DATABASE_NAME: prac
+      DATABASE_USERNAME: prac
+      DATABASE_PASSWORD: prac
+      PORT: 3000
+      CORS_ORIGIN: http://localhost
+      LOGGER_TYPE: json
+    depends_on:
+      postgres:
+        condition: service_healthy
+    networks:
+      - film_network
+
+  nginx:
+    build:
+      context: ./nginx
+    image: ghcr.io/ismaxse2/film-nginx:latest
+    container_name: film_nginx
+    restart: unless-stopped
+    ports:
+      - "80:80"
+    volumes:
+      - frontend_dist:/usr/share/nginx/html:ro
+    depends_on:
+      - frontend
+      - backend
+    networks:
+      - film_network
+
   postgres:
     image: postgres:15
-    container_name: postgres_container
+    container_name: film_postgres
     restart: unless-stopped
-
     environment:
       POSTGRES_USER: prac
       POSTGRES_PASSWORD: prac
       POSTGRES_DB: prac
-
-    ports:
-      - "5432:5432"
-
     volumes:
       - postgres_data:/var/lib/postgresql/data
+      - ./backend/test/prac.init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+      - ./backend/test/prac.films.sql:/docker-entrypoint-initdb.d/02-films.sql:ro
+      - ./backend/test/prac.shedules.sql:/docker-entrypoint-initdb.d/03-schedules.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U prac -d prac"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+    networks:
+      - film_network
+
+  pgadmin:
+    image: dpage/pgadmin4
+    container_name: film_pgadmin
+    restart: unless-stopped
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@example.com
+      PGADMIN_DEFAULT_PASSWORD: admin
+    ports:
+      - "8080:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    depends_on:
+      - postgres
+    networks:
+      - film_network
 
 volumes:
+  frontend_dist:
   postgres_data:
+  pgadmin_data:
+
+networks:
+  film_network:
+    driver: bridge
