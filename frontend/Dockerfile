@@ -14,6 +14,6 @@ FROM alpine:3.20
 
 WORKDIR /app
 
-COPY --from=build /app/dist ./dist
+COPY --from=build /app/dist /build/dist
 
-VOLUME ["/app/dist"]
+CMD ["sh", "-c", "rm -rf /app/dist/* && cp -r /build/dist/. /app/dist/"]

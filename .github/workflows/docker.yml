@@ -48,3 +48,20 @@ jobs:
           context: ./nginx
           push: true
           tags: ghcr.io/ismaxse2/film-nginx:latest
+
+  deploy:
+    needs: build-and-push
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Deploy to server
+        uses: appleboy/ssh-action@v1.2.0
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_SSH_KEY }}
+          script: |
+            cd ${{ secrets.SERVER_PROJECT_PATH }}
+            docker compose pull
+            docker compose up -d
+            docker image prune -f
