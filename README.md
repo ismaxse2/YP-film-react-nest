@@ -6,37 +6,97 @@
 
 - frontend на React и Vite;
 - backend на NestJS;
-- базы данных PostgreSQL.
+- базы данных PostgreSQL;
+- nginx;
+- Docker Compose.
+
+## Демо
+
+Frontend:
+
+https://film-frontend.nomorepartiessite.ru
+
+Backend API:
+
+https://film-backend.nomorepartiessite.ru/api/afisha/films
 
 ## Установка
 
-### PostgreSQL
+### Запуск через Docker
 
-PostgreSQL можно установить локально или запустить через Docker.
-
-Пример запуска через Docker:
+Создайте корневой `.env` на основе примера:
 
 ```bash
-docker compose up -d
+cp .env.example .env
 ```
 
-Создайте базу данных и коллекцию:
+Пример:
+
+```env
+DATABASE_DRIVER=postgres
+DATABASE_HOST=postgres
+DATABASE_PORT=5432
+DATABASE_NAME=prac
+DATABASE_USERNAME=prac
+DATABASE_PASSWORD=prac
+
+POSTGRES_USER=prac
+POSTGRES_PASSWORD=prac
+POSTGRES_DB=prac
+
+PORT=3000
+CORS_ORIGIN=http://localhost
+LOGGER_TYPE=json
+
+PGADMIN_DEFAULT_EMAIL=admin@example.com
+PGADMIN_DEFAULT_PASSWORD=admin
+```
+
+Основные переменные:
+
+- `DATABASE_*` — параметры подключения backend к PostgreSQL;
+- `POSTGRES_*` — настройки контейнера PostgreSQL;
+- `PORT` — порт backend-приложения;
+- `CORS_ORIGIN` — разрешённый origin frontend;
+- `LOGGER_TYPE` — тип логгера;
+- `PGADMIN_DEFAULT_EMAIL` — логин pgAdmin;
+- `PGADMIN_DEFAULT_PASSWORD` — пароль pgAdmin.
+
+Для запуска приложения:
 
 ```bash
-docker exec -i postgres_container \
-  psql -U prac -d prac \
-  < backend/test/prac.init.sql
-
-docker exec -i postgres_container \
-  psql -U prac -d prac \
-  < backend/test/prac.films.sql
-
-docker exec -i postgres_container \
-  psql -U prac -d prac \
-  < backend/test/prac.shedules.sql
+docker compose up -d --build
 ```
 
-## Бэкенд
+Docker Compose запускает:
+
+- frontend;
+- backend;
+- nginx;
+- PostgreSQL;
+- pgAdmin.
+
+При первом создании PostgreSQL volume база автоматически инициализируется SQL-файлами из backend/test.
+
+Проверить состояние контейнеров:
+
+```bash
+docker compose ps
+```
+
+Остановить приложение:
+
+```bash
+docker compose down
+```
+
+Удалить контейнеры вместе с volumes:
+
+```bash
+docker compose down -v
+```
+
+### Бэкенд
 
 Перейдите в папку backend:
 
@@ -68,6 +128,7 @@ DATABASE_PASSWORD=prac
 PORT=3000
 CORS_ORIGIN="http://localhost:5173"
 DEBUG=*
+LOGGER_TYPE=dev
 ```
 
 Переменные окружения:
@@ -80,7 +141,8 @@ DEBUG=*
 - `DATABASE_PASSWORD` — пароль пользователя PostgreSQL;
 - `PORT` — порт backend-приложения;
 - `CORS_ORIGIN` — адрес frontend-приложения, которому разрешены запросы к API;
-- `DEBUG` — настройка отладочных сообщений.
+- `DEBUG` — настройка отладочных сообщений;
+- `LOGGER_TYPE` — формат логирования: dev, json или tskv.
 
 Запустите backend в режиме разработки:
 
@@ -104,13 +166,14 @@ npm run lint
 npm run build
 ```
 
-Запуск e2e-тестов:
+Запуск тестов:
 
 ```bash
+npm test
 npm run test:e2e
 ```
 
-## Фронтенд
+### Фронтенд
 
 В отдельном терминале перейдите в папку frontend:
 
@@ -150,3 +213,35 @@ http://localhost:5173
 ```
 
 Для корректной работы frontend должны быть одновременно запущены PostgreSQL и backend.
+
+## Логирование
+
+Backend поддерживает три формата логирования:
+
+- dev — стандартный ConsoleLogger NestJS;
+- json — JSON-формат;
+- tskv — TSKV-формат.
+
+Формат выбирается переменной:
+
+```env
+LOGGER_TYPE=dev
+```
+
+## Docker Registry
+
+Docker-образы автоматически собираются через GitHub Actions и публикуются в GitHub Container Registry:
+
+`ghcr.io/ismaxse2/film-frontend:latest`
+`ghcr.io/ismaxse2/film-backend:latest`
+`ghcr.io/ismaxse2/film-nginx:latest`
+
+## Continuous Delivery
+
+После push в ветки main или review-3 GitHub Actions:
+
+- собирает Docker-образы;
+- публикует их в GHCR;
+- подключается к серверу по SSH;
+- загружает новые образы;
+- обновляет запущенные контейнеры.
