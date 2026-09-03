@@ -16,4 +16,4 @@ WORKDIR /app
 
 COPY --from=build /app/dist /build/dist
 
-CMD ["sh", "-c", "rm -rf /app/dist/* && cp -r /build/dist/. /app/dist/"]
+CMD ["sh", "-c", "rm -rf /app/dist/* && cp -r /build/dist/. /app/dist/ && tail -f /dev/null"]

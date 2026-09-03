@@ -24,6 +24,44 @@ https://film-backend.nomorepartiessite.ru/api/afisha/films
 
 ### Запуск через Docker
 
+Создайте корневой `.env` на основе примера:
+
+```bash
+cp .env.example .env
+```
+
+Пример:
+
+```env
+DATABASE_DRIVER=postgres
+DATABASE_HOST=postgres
+DATABASE_PORT=5432
+DATABASE_NAME=prac
+DATABASE_USERNAME=prac
+DATABASE_PASSWORD=prac
+
+POSTGRES_USER=prac
+POSTGRES_PASSWORD=prac
+POSTGRES_DB=prac
+
+PORT=3000
+CORS_ORIGIN=http://localhost
+LOGGER_TYPE=json
+
+PGADMIN_DEFAULT_EMAIL=admin@example.com
+PGADMIN_DEFAULT_PASSWORD=admin
+```
+
+Основные переменные:
+
+- `DATABASE_*` — параметры подключения backend к PostgreSQL;
+- `POSTGRES_*` — настройки контейнера PostgreSQL;
+- `PORT` — порт backend-приложения;
+- `CORS_ORIGIN` — разрешённый origin frontend;
+- `LOGGER_TYPE` — тип логгера;
+- `PGADMIN_DEFAULT_EMAIL` — логин pgAdmin;
+- `PGADMIN_DEFAULT_PASSWORD` — пароль pgAdmin.
+
 Для запуска приложения:
 
 ```bash
@@ -194,9 +232,9 @@ LOGGER_TYPE=dev
 
 Docker-образы автоматически собираются через GitHub Actions и публикуются в GitHub Container Registry:
 
-ghcr.io/ismaxse2/film-frontend:latest
-ghcr.io/ismaxse2/film-backend:latest
-ghcr.io/ismaxse2/film-nginx:latest
+`ghcr.io/ismaxse2/film-frontend:latest`
+`ghcr.io/ismaxse2/film-backend:latest`
+`ghcr.io/ismaxse2/film-nginx:latest`
 
 ## Continuous Delivery
 

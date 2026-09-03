@@ -4,6 +4,7 @@ services:
       context: ./frontend
     image: ghcr.io/ismaxse2/film-frontend:latest
     container_name: film_frontend
+    restart: unless-stopped
     volumes:
       - frontend_dist:/app/dist
     networks:
@@ -16,15 +17,15 @@ services:
     container_name: film_backend
     restart: unless-stopped
     environment:
-      DATABASE_DRIVER: postgres
-      DATABASE_HOST: postgres
-      DATABASE_PORT: 5432
-      DATABASE_NAME: prac
-      DATABASE_USERNAME: prac
-      DATABASE_PASSWORD: prac
-      PORT: 3000
-      CORS_ORIGIN: http://localhost
-      LOGGER_TYPE: json
+      DATABASE_DRIVER: ${DATABASE_DRIVER}
+      DATABASE_HOST: ${DATABASE_HOST}
+      DATABASE_PORT: ${DATABASE_PORT}
+      DATABASE_NAME: ${DATABASE_NAME}
+      DATABASE_USERNAME: ${DATABASE_USERNAME}
+      DATABASE_PASSWORD: ${DATABASE_PASSWORD}
+      PORT: ${PORT}
+      CORS_ORIGIN: ${CORS_ORIGIN}
+      LOGGER_TYPE: ${LOGGER_TYPE}
     depends_on:
       postgres:
         condition: service_healthy
@@ -52,16 +53,16 @@ services:
     container_name: film_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: prac
-      POSTGRES_PASSWORD: prac
-      POSTGRES_DB: prac
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
     volumes:
       - postgres_data:/var/lib/postgresql/data
       - ./backend/test/prac.init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
       - ./backend/test/prac.films.sql:/docker-entrypoint-initdb.d/02-films.sql:ro
       - ./backend/test/prac.shedules.sql:/docker-entrypoint-initdb.d/03-schedules.sql:ro
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U prac -d prac"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}"]
       interval: 5s
       timeout: 5s
       retries: 10
@@ -73,8 +74,8 @@ services:
     container_name: film_pgadmin
     restart: unless-stopped
     environment:
-      PGADMIN_DEFAULT_EMAIL: admin@example.com
-      PGADMIN_DEFAULT_PASSWORD: admin
+      PGADMIN_DEFAULT_EMAIL: ${PGADMIN_DEFAULT_EMAIL}
+      PGADMIN_DEFAULT_PASSWORD: ${PGADMIN_DEFAULT_PASSWORD}
     ports:
       - "8080:80"
     volumes:

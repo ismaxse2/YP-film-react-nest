@@ -46,6 +46,7 @@ jobs:
         uses: docker/build-push-action@v6
         with:
           context: ./nginx
+          file: ./nginx/Dockerfile.prod
           push: true
           tags: ghcr.io/ismaxse2/film-nginx:latest
 
